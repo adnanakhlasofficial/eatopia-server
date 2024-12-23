@@ -30,12 +30,34 @@ async function run() {
         );
 
         const foodCollection = client.db("foodCollection").collection("food");
+        const foodPurchases = client
+            .db("foodPurchases")
+            .collection("purchased");
 
         app.post("/foods", async (req, res) => {
             const foodData = req.body;
             const result = await foodCollection.insertOne(foodData);
             res.send(result);
         });
+
+        // //pending
+        // app.patch("/food/:id", async (req, res) => {
+        //     const totalPurchase = req.body;
+        //     const id = req.params.id;
+        //     const filter = { _id: new ObjectId(id) };
+        //     const options = { upsert: true };
+        //     const updatedFood = {
+        //         $set: {
+        //             totalPurchase,
+        //         },
+        //     };
+        //     const result = await foodCollection.findOneAndUpdate(
+        //         filter,
+        //         updatedFood,
+        //         options
+        //     );
+        //     res.send(result);
+        // });
 
         app.get("/foods", async (req, res) => {
             const result = await foodCollection.find().toArray();
@@ -55,12 +77,28 @@ async function run() {
             });
         });
 
+        app.get("/my-foods", async (req, res) => {
+            const email = req.query.email;
+            const filter = { ownerEmail: email };
+            const result = await foodCollection.find(filter).toArray();
+            res.send(result);
+        });
+
         app.get("/food", async (req, res) => {
             const foodName = req.query.search;
             const query = { name: { $regex: foodName, $options: "i" } };
             const result = await foodCollection.find(query).toArray();
             console.log(query, result);
             res.send(result);
+        });
+
+        app.post("/purchase-food", async (req, res) => {
+            const data = req.body;
+            const result = await foodPurchases.insertOne(data);
+            res.send({
+                status: true,
+                result,
+            });
         });
     } finally {
         // Ensures that the client will close when you finish/error
