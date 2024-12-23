@@ -54,6 +54,14 @@ async function run() {
                 result,
             });
         });
+
+        app.get("/food", async (req, res) => {
+            const foodName = req.query.search;
+            const query = { name: { $regex: foodName, $options: "i" } };
+            const result = await foodCollection.find(query).toArray();
+            console.log(query, result);
+            res.send(result);
+        });
     } finally {
         // Ensures that the client will close when you finish/error
         // await client.close();
