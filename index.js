@@ -77,6 +77,32 @@ async function run() {
             });
         });
 
+        app.put("/food/:id", async (req, res) => {
+            const food = req.body;
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const options = { upsert: true };
+            const updateFood = {
+                $set: {
+                    name: food.name,
+                    image: food.image,
+                    category: food.category,
+                    quantity: food.quantity,
+                    price: food.price,
+                    ownerName: food.ownerName,
+                    ownerEmail: food.ownerEmail,
+                    origin: food.origin,
+                    desc: food.desc,
+                },
+            };
+            const result = await foodCollection.updateOne(
+                filter,
+                updateFood,
+                options
+            );
+            res.send(result);
+        });
+
         app.get("/my-foods", async (req, res) => {
             const email = req.query.email;
             const filter = { ownerEmail: email };
