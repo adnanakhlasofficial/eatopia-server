@@ -40,24 +40,25 @@ async function run() {
             res.send(result);
         });
 
-        // //pending
-        // app.patch("/food/:id", async (req, res) => {
-        //     const totalPurchase = req.body;
-        //     const id = req.params.id;
-        //     const filter = { _id: new ObjectId(id) };
-        //     const options = { upsert: true };
-        //     const updatedFood = {
-        //         $set: {
-        //             totalPurchase,
-        //         },
-        //     };
-        //     const result = await foodCollection.findOneAndUpdate(
-        //         filter,
-        //         updatedFood,
-        //         options
-        //     );
-        //     res.send(result);
-        // });
+        //pending
+        app.patch("/food/:id", async (req, res) => {
+            const totalPurchase = req.body;
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const options = { upsert: true };
+            const updatedFood = {
+                $set: {
+                    quantity: totalPurchase.remaining,
+                    totalPurchase: totalPurchase.purchaseQuantity,
+                },
+            };
+            const result = await foodCollection.findOneAndUpdate(
+                filter,
+                updatedFood,
+                options
+            );
+            res.send(result);
+        });
 
         app.get("/foods", async (req, res) => {
             const result = await foodCollection.find().toArray();
