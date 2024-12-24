@@ -40,7 +40,6 @@ async function run() {
             res.send(result);
         });
 
-        //pending
         app.patch("/food/:id", async (req, res) => {
             const totalPurchase = req.body;
             const id = req.params.id;
@@ -135,6 +134,13 @@ async function run() {
                 status: true,
                 result,
             });
+        });
+
+        app.get("/orders", async (req, res) => {
+            const email = req.query.email;
+            const filter = { "buyer.email": email  };
+            const result = await foodPurchases.find(filter).toArray();
+            res.send(result);
         });
     } finally {
         // Ensures that the client will close when you finish/error
