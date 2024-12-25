@@ -15,6 +15,24 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
+const verifyToken = (req, res, next) => {
+    const token = req?.cookies?.token;
+    // console.log(token);
+
+    if (!token) {
+        return res.status(401).send({ message: "Unauthorized access" });
+    }
+
+    jwt.verify(token, process.env.ACCESS_TOKEN, (err, decode) => {
+        if (err) {
+            return res.status(401).send({ message: "Unauthorized access" });
+        }
+
+        req.user = decode;
+        next();
+    });
+};
+
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
 const uri = "mongodb://127.0.0.1:27017/";
@@ -139,8 +157,13 @@ async function run() {
             res.send(result);
         });
 
-        app.get("/my-foods", async (req, res) => {
+        app.get("/my-foods", verifyToken, async (req, res) => {
             const email = req.query.email;
+
+            if (req.user.email !== req.query.email) {
+                return res.status(403).send({ message: "Access forbidden" });
+            }
+
             const filter = { ownerEmail: email };
             const result = await foodCollection.find(filter).toArray();
             res.send(result);
@@ -170,8 +193,13 @@ async function run() {
             res.send(result);
         });
 
-        app.get("/orders", async (req, res) => {
+        app.get("/orders", verifyToken, async (req, res) => {
             const email = req.query.email;
+
+            if (req.user.email !== req.query.email) {
+                return res.status(403).send({ message: "Access forbidden" });
+            }
+
             const filter = { "buyer.email": email };
             const result = await foodPurchases.find(filter).toArray();
             res.send(result);
