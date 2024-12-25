@@ -8,7 +8,7 @@ const app = express();
 
 app.use(
     cors({
-        origin: ["http://localhost:5173"],
+        origin: ["http://localhost:5173", "https://eatopia-da.netlify.app"],
         credentials: true,
     })
 );
@@ -17,7 +17,6 @@ app.use(cookieParser());
 
 const verifyToken = (req, res, next) => {
     const token = req?.cookies?.token;
-    // console.log(token);
 
     if (!token) {
         return res.status(401).send({ message: "Unauthorized access" });
@@ -35,7 +34,7 @@ const verifyToken = (req, res, next) => {
 
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
-const uri = "mongodb://127.0.0.1:27017/";
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.0bmcc.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -49,9 +48,9 @@ const client = new MongoClient(uri, {
 async function run() {
     try {
         // Connect the client to the server	(optional starting in v4.7)
-        await client.connect();
+        // await client.connect();
         // Send a ping to confirm a successful connection
-        await client.db("admin").command({ ping: 1 });
+        // await client.db("admin").command({ ping: 1 });
         console.log(
             "Pinged your deployment. You successfully connected to MongoDB!"
         );
@@ -63,14 +62,18 @@ async function run() {
             });
             res.cookie("token", token, {
                 httpOnly: true,
-                secure: false,
+                secure: process.env.NODE_ENV === "production",
+                sameSite:
+                    process.env.NODE_ENV === "production" ? "none" : "strict",
             }).send({ success: true });
         });
 
         app.post("/logout", (req, res) => {
             res.clearCookie("token", {
                 httpOnly: true,
-                secure: false,
+                secure: process.env.NODE_ENV === "production",
+                sameSite:
+                    process.env.NODE_ENV === "production" ? "none" : "strict",
             }).send({ success: true });
         });
 
@@ -184,7 +187,6 @@ async function run() {
             const foodName = req.query.search;
             const query = { name: { $regex: foodName, $options: "i" } };
             const result = await foodCollection.find(query).toArray();
-            console.log(query, result);
             res.send(result);
         });
 
