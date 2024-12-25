@@ -59,7 +59,7 @@ async function run() {
         app.post("/login", (req, res) => {
             const user = req.body;
             const token = jwt.sign(user, process.env.ACCESS_TOKEN, {
-                expiresIn: "1h",
+                expiresIn: "5h",
             });
             res.cookie("token", token, {
                 httpOnly: true,
@@ -85,6 +85,11 @@ async function run() {
             res.send(result);
         });
 
+        app.get("/count", async (req, res) => {
+            const count = await foodCollection.estimatedDocumentCount();
+            res.send({ count });
+        });
+
         app.patch("/food/:id", async (req, res) => {
             const totalPurchase = req.body;
             const id = req.params.id;
@@ -105,7 +110,13 @@ async function run() {
         });
 
         app.get("/foods", async (req, res) => {
-            const result = await foodCollection.find().toArray();
+            const page = parseInt(req.query.page);
+            const size = parseInt(req.query.size);
+            const result = await foodCollection
+                .find()
+                .skip(page * size)
+                .limit(size)
+                .toArray();
             res.send({
                 status: true,
                 result,
