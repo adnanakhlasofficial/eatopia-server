@@ -1,15 +1,17 @@
 const express = require("express");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
-require('dotenv').config()
+require("dotenv").config();
 const cookieParser = require("cookie-parser");
 const port = process.env.PORT || 5000;
 const app = express();
 
-app.use(cors({
-    origin: ['http://localhost:5173'],
-    credentials: true
-}));
+app.use(
+    cors({
+        origin: ["http://localhost:5173"],
+        credentials: true,
+    })
+);
 app.use(express.json());
 app.use(cookieParser());
 
@@ -47,12 +49,12 @@ async function run() {
             }).send({ success: true });
         });
 
-        app.post("/logout", (req, res)=> {
-            res.clearCookie('token', {
+        app.post("/logout", (req, res) => {
+            res.clearCookie("token", {
                 httpOnly: true,
-                secure: false
-            }).send({success: true})
-        })
+                secure: false,
+            }).send({ success: true });
+        });
 
         const foodCollection = client.db("foodCollection").collection("food");
         const foodPurchases = client
@@ -159,6 +161,13 @@ async function run() {
                 status: true,
                 result,
             });
+        });
+
+        app.delete("/purchase-delete/:id", async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await foodPurchases.deleteOne(query);
+            res.send(result);
         });
 
         app.get("/orders", async (req, res) => {
